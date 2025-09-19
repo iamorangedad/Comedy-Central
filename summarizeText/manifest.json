@@ -1,0 +1,27 @@
+{
+    "manifest_version": 3,
+    "name": "AI Text Summarizer",
+    "version": "1.0",
+    "description": "Select text and summarize it using an AI model.",
+    "permissions": [
+        "contextMenus",
+        "activeTab",
+        "storage"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "icons": {
+        "48": "icon.png"
+    }
+}
