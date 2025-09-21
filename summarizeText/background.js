@@ -33,7 +33,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 // API文档: https://ai.google.dev/gemini-api/docs/text-generation
 async function callLLMAPI(tabId, text) {
     // 1. 从 storage 中获取 API 密钥，或者直接在代码中 hardcode (不推荐)
-    const apiKey = "AIzaSyCtRQ_1cl3sfPxcj91rZESm7rOFRq5RsFg";
+    const apiKey = "todo";
     
     // 检查文本长度
     if (!text || text.trim().length === 0) {
