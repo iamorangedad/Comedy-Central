@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // API文档: https://ai.google.dev/gemini-api/docs/text-generation
 async function callLLMAPI(tabId, text) {
     // 1. 从 storage 中获取 API 密钥，或者直接在代码中 hardcode (不推荐)
-    const apiKey = "AIzaSyCtRQ_1cl3sfPxcj91rZESm7rOFRq5RsFg";
+    const apiKey = "todo";
     const prompt = `Please summarize the following text: ${text}`;
     const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"; // 替换为你的大模型API端点
 
