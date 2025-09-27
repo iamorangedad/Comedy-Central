@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 350px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .voice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        
+        .voice-option {
+            padding: 5px 8px;
+            border: 1px solid #e9ecef;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .voice-option:hover {
+            background: #f8f9fa;
+        }
+        
+        .voice-option.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 AI TTS 设置</h1>
+    </div>
+    
+    <form id="settingsForm">
+        <div class="form-group">
+            <label for="voice">选择语音:</label>
+            <select id="voice">
+                <option value="Kore">Kore - Firm</option>
+                <option value="Puck">Puck - Upbeat</option>
+                <option value="Zephyr">Zephyr - Bright</option>
+                <option value="Fenrir">Fenrir - Excitable</option>
+                <option value="Leda">Leda - Youthful</option>
+                <option value="Charon">Charon - Informative</option>
+                <option value="Orus">Orus - Firm</option>
+                <option value="Aoede">Aoede - Breezy</option>
+                <option value="Callirrhoe">Callirrhoe - Easy-going</option>
+                <option value="Autonoe">Autonoe - Bright</option>
+                <option value="Enceladus">Enceladus - Breathy</option>
+                <option value="Iapetus">Iapetus - Clear</option>
+                <option value="Umbriel">Umbriel - Easy-going</option>
+                <option value="Algieba">Algieba - Smooth</option>
+                <option value="Despina">Despina - Smooth</option>
+                <option value="Erinome">Erinome - Clear</option>
+                <option value="Algenib">Algenib - Gravelly</option>
+                <option value="Rasalgethi">Rasalgethi - Informative</option>
+                <option value="Laomedeia">Laomedeia - Upbeat</option>
+                <option value="Achernar">Achernar - Soft</option>
+                <option value="Alnilam">Alnilam - Firm</option>
+                <option value="Schedar">Schedar - Even</option>
+                <option value="Gacrux">Gacrux - Mature</option>
+                <option value="Pulcherrima">Pulcherrima - Forward</option>
+                <option value="Achird">Achird - Friendly</option>
+                <option value="Zubenelgenubi">Zubenelgenubi - Casual</option>
+                <option value="Vindemiatrix">Vindemiatrix - Gentle</option>
+                <option value="Sadachbia">Sadachbia - Lively</option>
+                <option value="Sadaltager">Sadaltager - Knowledgeable</option>
+                <option value="Sulafat">Sulafat - Warm</option>
+            </select>
+            <div class="help-text">
+                选择你喜欢的语音风格
+            </div>
+        </div>
+        
+        <button type="submit" class="btn" id="saveBtn">保存语音设置</button>
+    </form>
+    
+    <div class="info-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+        <h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 14px;">ℹ️ 测试模式</h4>
+        <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
+            当前使用固定API密钥进行功能测试。选中网页文本后右键选择"AI语音播放选中文本"即可使用。
+        </p>
+    </div>
+    
+    <div id="status" class="status" style="display: none;"></div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

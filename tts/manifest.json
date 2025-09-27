@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "AI Text-to-Speech",
+    "version": "1.0",
+    "description": "选中网页文本，使用AI生成语音并播放",
+    "permissions": [
+        "contextMenus",
+        "activeTab",
+        "storage",
+        "scripting"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "icons": {
+        "16": "icon16.png"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "AI TTS设置"
+    }
+}
