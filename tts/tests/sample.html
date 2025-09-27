@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加利福尼亚州相声</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .script {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #007bff;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .speaker {
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 15px;
+        }
+
+        .speaker:first-child {
+            margin-top: 0;
+        }
+
+        .audio-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .speed-controls {
+            margin: 20px 0;
+        }
+
+        .speed-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .speed-btn.active {
+            background: #007bff;
+        }
+
+        .progress-container {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .status {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">🎭 加利福尼亚州趣谈相声 🎭</h1>
+
+        <div class="script">
+            <div class="speaker">甲：</div>
+            听说您最近去了美国？
+
+            <div class="speaker">乙：</div>
+            对啊，刚从加利福尼亚州回来！
+
+            <div class="speaker">甲：</div>
+            加利福尼亚？那不就是加州吗？听着就挺洋气的。
+
+            <div class="speaker">乙：</div>
+            可不是嘛！人家还有个雅号呢——"金州"！
+
+            <div class="speaker">甲：</div>
+            金州？那地方遍地是金子？
+
+            <div class="speaker">乙：</div>
+            嗨！您这思想还停留在淘金热时代呢！现在人家金子是另一种——经济实力！
+
+            <div class="speaker">甲：</div>
+            有多厉害？
+
+            <div class="speaker">乙：</div>
+            2024年生产总值4.1万亿美元！
+
+            <div class="speaker">甲：</div>
+            多少？！
+
+            <div class="speaker">乙：</div>
+            4.1万亿！比日本一整个国家还多！排美国各州第一！
+
+            <div class="speaker">甲：</div>
+            好家伙！这要是独立出去，岂不是...
+
+            <div class="speaker">乙：</div>
+            世界第四大经济体！就这么厉害！
+
+            <div class="speaker">甲：</div>
+            那人口呢？
+
+            <div class="speaker">乙：</div>
+            3918万！全美第一！相当于咱们好几个省加起来！
+
+            <div class="speaker">甲：</div>
+            这么多人都住在哪儿啊？
+
+            <div class="speaker">乙：</div>
+            主要就两大地方——洛杉矶地区1870万人，旧金山湾区880万人！
+
+            <div class="speaker">甲：</div>
+            洛杉矶我知道，好莱坞嘛！
+
+            <div class="speaker">乙：</div>
+            对！全美第二大城市！仅次于纽约！
+
+            <div class="speaker">甲：</div>
+            那旧金山湾区呢？
+
+            <div class="speaker">乙：</div>
+            那更了不起！硅谷就在那儿！世界前十大公司有4家总部在那儿，世界前十大富豪有4位住在那儿！
+
+            <div class="speaker">甲：</div>
+            这么说，这地方是真金州啊！
+
+            <div class="speaker">乙：</div>
+            可不是嘛！人家州首府萨克拉门托都显得低调了！
+
+            <div class="speaker">甲：</div>
+            怪不得邮政缩写就两个字母——CA，简洁明了！
+
+            <div class="speaker">乙：</div>
+            还有个昵称叫Cali呢！听着就亲切！
+
+            <div class="speaker">甲：</div>
+            看来下次我也得去见识见识这"金州"的魅力！
+
+            <div class="speaker">乙：</div>
+            去吧！保证让您大开眼界！从太平洋海岸到内陆山脉，从好莱坞到硅谷，真是个神奇的地方！
+        </div>
+
+        <div class="audio-controls">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">🎵 播放相声</button>
+            <button class="play-btn" id="stopBtn" onclick="stopAudio()" disabled>⏹️ 停止</button>
+        </div>
+
+        <div class="speed-controls">
+            <span>播放速度：</span>
+            <button class="speed-btn" onclick="setSpeed(0.8)">0.8x</button>
+            <button class="speed-btn active" onclick="setSpeed(1.0)">1.0x</button>
+            <button class="speed-btn" onclick="setSpeed(1.2)">1.2x</button>
+            <button class="speed-btn" onclick="setSpeed(1.5)">1.5x</button>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="status" id="status">准备播放</div>
+    </div>
+
+    <script>
+        let currentUtterance = null;
+        let isPausing = false;
+        let currentSpeed = 1.0;
+        let progressInterval;
+
+        const script = `甲：听说您最近去了美国？
+乙：对啊，刚从加利福尼亚州回来！
+甲：加利福尼亚？那不就是加州吗？听着就挺洋气的。
+乙：可不是嘛！人家还有个雅号呢——"金州"！
+甲：金州？那地方遍地是金子？
+乙：嗨！您这思想还停留在淘金热时代呢！现在人家金子是另一种——经济实力！
+甲：有多厉害？
+乙：2024年生产总值4.1万亿美元！
+甲：多少？！
+乙：4.1万亿！比日本一整个国家还多！排美国各州第一！
+甲：好家伙！这要是独立出去，岂不是...
+乙：世界第四大经济体！就这么厉害！
+甲：那人口呢？
+乙：3918万！全美第一！相当于咱们好几个省加起来！
+甲：这么多人都住在哪儿啊？
+乙：主要就两大地方——洛杉矶地区1870万人，旧金山湾区880万人！
+甲：洛杉矶我知道，好莱坞嘛！
+乙：对！全美第二大城市！仅次于纽约！
+甲：那旧金山湾区呢？
+乙：那更了不起！硅谷就在那儿！世界前十大公司有4家总部在那儿，世界前十大富豪有4位住在那儿！
+甲：这么说，这地方是真金州啊！
+乙：可不是嘛！人家州首府萨克拉门托都显得低调了！
+甲：怪不得邮政缩写就两个字母——CA，简洁明了！
+乙：还有个昵称叫Cali呢！听着就亲切！
+甲：看来下次我也得去见识见识这"金州"的魅力！
+乙：去吧！保证让您大开眼界！从太平洋海岸到内陆山脉，从好莱坞到硅谷，真是个神奇的地方！`;
+
+        function togglePlay() {
+            if (currentUtterance && !currentUtterance.ended) {
+                if (isPausing) {
+                    speechSynthesis.resume();
+                    isPausing = false;
+                    document.getElementById('playBtn').textContent = '⏸️ 暂停';
+                    document.getElementById('status').textContent = '正在播放...';
+                } else {
+                    speechSynthesis.pause();
+                    isPausing = true;
+                    document.getElementById('playBtn').textContent = '▶️ 继续';
+                    document.getElementById('status').textContent = '已暂停';
+                }
+            } else {
+                startSpeech();
+            }
+        }
+
+        function startSpeech() {
+            // 停止任何正在播放的语音
+            speechSynthesis.cancel();
+
+            currentUtterance = new SpeechSynthesisUtterance(script);
+            currentUtterance.lang = 'zh-CN';
+            currentUtterance.rate = currentSpeed;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
+
+            currentUtterance.onstart = function () {
+                document.getElementById('playBtn').textContent = '⏸️ 暂停';
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('status').textContent = '正在播放...';
+                startProgress();
+            };
+
+            currentUtterance.onend = function () {
+                document.getElementById('playBtn').textContent = '🎵 播放相声';
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('status').textContent = '播放完成';
+                document.getElementById('progressBar').style.width = '100%';
+                clearInterval(progressInterval);
+                setTimeout(() => {
+                    document.getElementById('progressBar').style.width = '0%';
+                    document.getElementById('status').textContent = '准备播放';
+                }, 2000);
+            };
+
+            currentUtterance.onerror = function (event) {
+                console.error('Speech synthesis error:', event);
+                document.getElementById('status').textContent = '播放出错，请重试';
+                resetControls();
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        function stopAudio() {
+            speechSynthesis.cancel();
+            resetControls();
+        }
+
+        function resetControls() {
+            document.getElementById('playBtn').textContent = '🎵 播放相声';
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('status').textContent = '准备播放';
+            document.getElementById('progressBar').style.width = '0%';
+            clearInterval(progressInterval);
+            isPausing = false;
+        }
+
+        function setSpeed(speed) {
+            currentSpeed = speed;
+
+            // 更新按钮状态
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 如果正在播放，重新开始播放以应用新速度
+            if (currentUtterance && !currentUtterance.ended && !isPausing) {
+                const wasPlaying = !speechSynthesis.paused;
+                if (wasPlaying) {
+                    stopAudio();
+                    setTimeout(() => startSpeech(), 100);
+                }
+            }
+        }
+
+        function startProgress() {
+            let progress = 0;
+            const duration = script.length / (currentSpeed * 15); // 估算时长
+            progressInterval = setInterval(() => {
+                progress += 100 / duration;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                }
+                document.getElementById('progressBar').style.width = progress + '%';
+            }, 100);
+        }
+
+        // 页面加载完成后检查浏览器支持
+        window.addEventListener('load', function () {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('status').textContent = '您的浏览器不支持语音合成功能';
+                document.getElementById('playBtn').disabled = true;
+            }
+        });
+    </script>
+</body>
+
+</html>
