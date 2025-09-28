@@ -124,6 +124,38 @@
             color: white;
             border-color: #007bff;
         }
+        
+        .debug-section {
+            margin-bottom: 15px;
+        }
+        
+        .debug-section h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #495057;
+        }
+        
+        .debug-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 11px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .debug-item:last-child {
+            border-bottom: none;
+        }
+        
+        .debug-item span:first-child {
+            color: #6c757d;
+            flex: 1;
+        }
+        
+        .debug-item strong {
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -174,11 +206,38 @@
         <button type="submit" class="btn" id="saveBtn">保存语音设置</button>
     </form>
     
+    <div class="form-group" style="margin-top: 20px;">
+        <label for="autoSave">💾 自动保存设置:</label>
+        <div style="margin: 8px 0;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                <input type="checkbox" id="autoSave" checked>
+                <span>自动保存音频文件到本地</span>
+            </label>
+        </div>
+        
+        <div id="saveFormatGroup" style="margin-top: 10px;">
+            <label for="saveFormat">保存格式:</label>
+            <select id="saveFormat">
+                <option value="wav">WAV (推荐)</option>
+                <option value="mp3">MP3</option>
+                <option value="pcm">PCM (原始)</option>
+            </select>
+            <div class="help-text">
+                选择音频文件的保存格式
+            </div>
+        </div>
+    </div>
+    
     <div class="info-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
         <h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 14px;">ℹ️ 测试模式</h4>
         <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
             当前使用固定API密钥进行功能测试。选中网页文本后右键选择"AI语音播放选中文本"即可使用。
         </p>
+    </div>
+    
+    <div id="debugInfo" style="margin-top: 15px; padding: 15px; background: #f1f3f4; border-radius: 6px; font-size: 12px;">
+        <h4 style="margin: 0 0 10px 0; color: #6c757d; font-size: 13px;">🔧 调试信息</h4>
+        <div style="color: #666;">正在加载调试信息...</div>
     </div>
     
     <div id="status" class="status" style="display: none;"></div>

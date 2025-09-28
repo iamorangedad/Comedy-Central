@@ -34,40 +34,48 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 // 确保内容脚本已准备好接收消息
-function ensureContentScriptReady(tabId, callback) {
-    console.log("🔍 检查内容脚本状态，Tab ID:", tabId);
+function ensureContentScriptReady(tabId, callback, retryCount = 0) {
+    const maxRetries = 5;
+    const baseDelay = 300;
+
+    console.log(`🔍 检查内容脚本状态，Tab ID: ${tabId}, 尝试 ${retryCount + 1}/${maxRetries + 1}`);
 
     // 先尝试发送一个ping消息
     chrome.tabs.sendMessage(tabId, { action: "ping" }, (response) => {
         if (chrome.runtime.lastError) {
             console.log("⚠️ 内容脚本未响应，错误:", chrome.runtime.lastError.message);
-            console.log("🔄 开始重新注入内容脚本...");
 
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ['content.js']
-            }, () => {
-                if (chrome.runtime.lastError) {
-                    console.error("❌ 内容脚本注入失败:", chrome.runtime.lastError.message);
-                    callback();
-                    return;
-                }
+            // 如果还有重试次数，尝试重新注入内容脚本
+            if (retryCount < maxRetries) {
+                console.log("🔄 开始重新注入内容脚本...");
 
-                console.log("✅ 内容脚本注入成功，等待初始化...");
-                // 等待一下让内容脚本初始化，然后重试
-                setTimeout(() => {
-                    console.log("🔄 重试ping消息...");
-                    // 重试ping消息
-                    chrome.tabs.sendMessage(tabId, { action: "ping" }, (retryResponse) => {
-                        if (chrome.runtime.lastError) {
-                            console.log("⚠️ 内容脚本注入后仍然无法连接:", chrome.runtime.lastError.message);
-                        } else {
-                            console.log("✅ 内容脚本重新注入成功，已响应ping");
-                        }
-                        callback();
-                    });
-                }, 200);
-            });
+                chrome.scripting.executeScript({
+                    target: { tabId: tabId },
+                    files: ['content.js']
+                }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error("❌ 内容脚本注入失败:", chrome.runtime.lastError.message);
+                        // 继续重试
+                        const delay = baseDelay * Math.pow(1.5, retryCount);
+                        console.log(`⏳ 等待 ${delay}ms 后重试注入...`);
+                        setTimeout(() => {
+                            ensureContentScriptReady(tabId, callback, retryCount + 1);
+                        }, delay);
+                        return;
+                    }
+
+                    console.log("✅ 内容脚本注入成功，等待初始化...");
+                    // 等待内容脚本初始化，然后重试ping
+                    const delay = baseDelay * Math.pow(1.2, retryCount);
+                    setTimeout(() => {
+                        console.log("🔄 重试ping消息...");
+                        ensureContentScriptReady(tabId, callback, retryCount + 1);
+                    }, delay);
+                });
+            } else {
+                console.error("💥 内容脚本准备最终失败，已用尽所有重试次数");
+                callback();
+            }
         } else {
             // 内容脚本已准备好
             console.log("✅ 内容脚本已准备好，响应:", response);
@@ -78,7 +86,8 @@ function ensureContentScriptReady(tabId, callback) {
 
 // 可靠的消息发送函数
 function sendMessageToContentScript(tabId, message, retryCount = 0) {
-    const maxRetries = 3;
+    const maxRetries = 5;
+    const baseDelay = 200;
 
     console.log(`📤 发送消息到内容脚本 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, {
         action: message.action,
@@ -87,23 +96,120 @@ function sendMessageToContentScript(tabId, message, retryCount = 0) {
         dataSize: message.audioData ? message.audioData.length : 0
     });
 
-    chrome.tabs.sendMessage(tabId, message, (response) => {
+    // 检查tab是否仍然有效
+    chrome.tabs.get(tabId, (tab) => {
         if (chrome.runtime.lastError) {
-            console.error(`❌ 发送消息到内容脚本失败 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, chrome.runtime.lastError.message);
-
-            // 如果还有重试次数，等待后重试
-            if (retryCount < maxRetries) {
-                const delay = 500 * (retryCount + 1);
-                console.log(`⏳ 等待 ${delay}ms 后重试...`);
-                setTimeout(() => {
-                    sendMessageToContentScript(tabId, message, retryCount + 1);
-                }, delay);
-            } else {
-                console.error("💥 消息发送最终失败，已用尽所有重试次数");
-            }
-        } else {
-            console.log("✅ 消息发送成功:", message.action, "响应:", response);
+            console.error("❌ Tab不存在或已关闭:", chrome.runtime.lastError.message);
+            return;
         }
+
+        const startTime = Date.now();
+        chrome.tabs.sendMessage(tabId, message, (response) => {
+            const responseTime = Date.now() - startTime;
+
+            if (chrome.runtime.lastError) {
+                console.error(`❌ 发送消息到内容脚本失败 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, chrome.runtime.lastError.message);
+                console.error("📋 错误详情:", {
+                    error: chrome.runtime.lastError.message,
+                    action: message.action,
+                    tabId: tabId,
+                    retryCount: retryCount,
+                    responseTime: `${responseTime}ms`
+                });
+
+                // 更新统计
+                updateMessageStats(false, responseTime);
+
+                // 如果还有重试次数，使用指数退避策略
+                if (retryCount < maxRetries) {
+                    messageStats.retries++;
+                    const delay = baseDelay * Math.pow(2, retryCount) + Math.random() * 100; // 添加随机抖动
+                    console.log(`⏳ 等待 ${Math.round(delay)}ms 后重试...`);
+
+                    // 对于音频数据，如果重试次数较多，尝试重新确保内容脚本准备
+                    if (retryCount >= 2 && message.action === "playAudio") {
+                        console.log("🔄 音频消息发送失败，重新确保内容脚本准备...");
+                        ensureContentScriptReady(tabId, () => {
+                            setTimeout(() => {
+                                sendMessageToContentScript(tabId, message, retryCount + 1);
+                            }, delay);
+                        });
+                    } else {
+                        setTimeout(() => {
+                            sendMessageToContentScript(tabId, message, retryCount + 1);
+                        }, delay);
+                    }
+                } else {
+                    console.error("💥 消息发送最终失败，已用尽所有重试次数");
+                    // 如果是音频播放失败，显示错误信息
+                    if (message.action === "playAudio") {
+                        chrome.tabs.sendMessage(tabId, {
+                            action: "displayError",
+                            error: "音频播放失败：无法与内容脚本通信"
+                        });
+                    }
+                }
+            } else {
+                console.log("✅ 消息发送成功:", message.action, "响应:", response, `响应时间: ${responseTime}ms`);
+                updateMessageStats(true, responseTime);
+            }
+        });
+    });
+}
+
+// 连接健康检查
+const connectionHealth = new Map();
+
+// 消息发送统计
+const messageStats = {
+    totalSent: 0,
+    successful: 0,
+    failed: 0,
+    retries: 0,
+    averageResponseTime: 0
+};
+
+function updateMessageStats(success, responseTime = 0) {
+    messageStats.totalSent++;
+    if (success) {
+        messageStats.successful++;
+        messageStats.averageResponseTime =
+            (messageStats.averageResponseTime * (messageStats.successful - 1) + responseTime) / messageStats.successful;
+    } else {
+        messageStats.failed++;
+    }
+
+    console.log("📊 消息发送统计:", {
+        totalSent: messageStats.totalSent,
+        successful: messageStats.successful,
+        failed: messageStats.failed,
+        successRate: `${((messageStats.successful / messageStats.totalSent) * 100).toFixed(1)}%`,
+        averageResponseTime: `${messageStats.averageResponseTime.toFixed(0)}ms`
+    });
+}
+
+function checkConnectionHealth(tabId) {
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        chrome.tabs.sendMessage(tabId, { action: "ping" }, (response) => {
+            const responseTime = Date.now() - startTime;
+            const isHealthy = !chrome.runtime.lastError && response && response.status === "ready";
+
+            connectionHealth.set(tabId, {
+                isHealthy,
+                lastCheck: Date.now(),
+                responseTime,
+                error: chrome.runtime.lastError ? chrome.runtime.lastError.message : null
+            });
+
+            console.log(`🏥 连接健康检查 - Tab ${tabId}:`, {
+                isHealthy,
+                responseTime: `${responseTime}ms`,
+                error: chrome.runtime.lastError ? chrome.runtime.lastError.message : null
+            });
+
+            resolve(isHealthy);
+        });
     });
 }
 
@@ -111,6 +217,16 @@ function sendMessageToContentScript(tabId, message, retryCount = 0) {
 async function callTTSAPI(tabId, text) {
     console.log("🎤 开始TTS API调用流程");
     console.log("📋 输入参数:", { tabId, textLength: text.length });
+
+    // 先进行连接健康检查
+    console.log("🏥 进行连接健康检查...");
+    const isHealthy = await checkConnectionHealth(tabId);
+    if (!isHealthy) {
+        console.log("⚠️ 连接不健康，重新确保内容脚本准备...");
+        await new Promise((resolve) => {
+            ensureContentScriptReady(tabId, resolve);
+        });
+    }
 
     // 从storage获取API密钥，如果没有则使用默认值
     console.log("🔑 获取存储设置...");
@@ -238,11 +354,20 @@ async function callTTSAPI(tabId, text) {
         console.log("🎵 音频数据获取成功，数据长度:", audioData.length);
         console.log("📤 准备发送音频数据到内容脚本...");
 
+        // 检查是否启用自动保存
+        const saveSettings = await chrome.storage.sync.get(['autoSaveAudio', 'saveFormat']);
+        const autoSave = saveSettings.autoSaveAudio !== false; // 默认启用
+        const saveFormat = saveSettings.saveFormat || 'wav'; // 默认WAV格式
+
+        console.log("💾 自动保存设置:", { autoSave, saveFormat });
+
         // 将音频数据发送到内容脚本进行播放
         sendMessageToContentScript(tabId, {
             action: "playAudio",
             audioData: audioData,
-            text: textToSpeak
+            text: textToSpeak,
+            autoSave: autoSave,
+            saveFormat: saveFormat
         });
 
     } catch (error) {
@@ -282,5 +407,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             });
         });
         return true; // 保持消息通道开放
+    }
+
+    if (request.action === "getDebugInfo") {
+        // 获取调试信息
+        sendResponse({
+            messageStats: messageStats,
+            connectionHealth: Object.fromEntries(connectionHealth),
+            timestamp: Date.now()
+        });
+        return true;
     }
 });
