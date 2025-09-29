@@ -239,7 +239,7 @@ async function scriptText(text) {
     const maxInputLength = 15000;
     const textToSummarize = text.length > maxInputLength ? text.substring(0, maxInputLength) : text;
 
-    const prompt = `请将以下内容改写为相声的形式，格式为张三和李四的对话：\n\n${textToSummarize}`;
+    const prompt = `请将以下内容改写为相声的形式，格式为张三和李四的对话，且只保留对话内容，去除开头和结尾的介绍：\n\n${textToSummarize}`;
 
     try {
         const requestBody = {
@@ -480,6 +480,215 @@ async function callTTSAPI(tabId, text) {
     }
 }
 
+// 调用Gemini TTS API的双人对话函数
+async function callDualVoiceTTSAPI(tabId, text) {
+    console.log("🎭 开始双人对话TTS API调用流程");
+    console.log("📋 输入参数:", { tabId, textLength: text.length });
+
+    // 先进行连接健康检查
+    console.log("🏥 进行连接健康检查...");
+    const isHealthy = await checkConnectionHealth(tabId);
+    if (!isHealthy) {
+        console.log("⚠️ 连接不健康，重新确保内容脚本准备...");
+        await new Promise((resolve) => {
+            ensureContentScriptReady(tabId, resolve);
+        });
+    }
+
+    // 从storage获取API密钥和语音配置
+    console.log("🔑 获取存储设置...");
+    const result = await chrome.storage.sync.get([
+        'geminiApiKey',
+        'voice1',
+        'voice2',
+        'voiceName1',
+        'voiceName2'
+    ]);
+    console.log("💾 存储设置:", result);
+
+    const apiKey = "TODO";
+    // 默认使用两个不同的预设语音
+    const voice1 = result.voice1 || "Puck";  // 第一个说话者（男声）
+    const voice2 = result.voice2 || "Charon"; // 第二个说话者（女声）
+    const voiceName1 = result.voiceName1 || "张三";
+    const voiceName2 = result.voiceName2 || "李四";
+
+    console.log("🎵 选择的语音配置:", {
+        voice1,
+        voice2,
+        voiceName1,
+        voiceName2
+    });
+
+    // 检查文本长度
+    if (!text || text.trim().length === 0) {
+        console.log("❌ 文本内容无效");
+        sendMessageToContentScript(tabId, {
+            action: "displayError",
+            error: "没有有效的文本内容"
+        });
+        return;
+    }
+
+    // 限制文本长度
+    const maxLength = 8000;
+    const textToSpeak = text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+    const prompt = `请生成以下对话的音频：\n\n${textToSpeak}`;
+
+    console.log("📝 处理后的文本长度:", textToSpeak.length);
+    if (text.length > maxLength) {
+        console.log("⚠️ 文本被截断，原长度:", text.length, "截断后长度:", textToSpeak.length);
+    }
+
+    const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
+    console.log("🌐 API URL:", apiUrl);
+
+    try {
+        console.log("🚀 开始调用双人对话TTS API...");
+
+        // 发送加载状态
+        console.log("📤 发送加载状态到内容脚本");
+        sendMessageToContentScript(tabId, {
+            action: "showLoading",
+            message: "正在生成双人对话语音..."
+        });
+
+        // 构建双人对话的请求体
+        // 使用speaker标记来指定不同的说话者
+        const requestBody = {
+            contents: [
+                {
+                    parts: [
+                        {
+                            text: prompt
+                        }
+                    ]
+                }
+            ],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    // 使用官方的 multiSpeakerVoiceConfig 格式
+                    multiSpeakerVoiceConfig: {
+                        speakerVoiceConfigs: [
+                            {
+                                speaker: voiceName1,
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: {
+                                        voiceName: voice1
+                                    }
+                                }
+                            },
+                            {
+                                speaker: voiceName2,
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: {
+                                        voiceName: voice2
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+
+        console.log("📦 请求体:", {
+            textLength: textToSpeak.length,
+            voice1: voice1,
+            voice2: voice2,
+            voiceName1: voiceName1,
+            voiceName2: voiceName2,
+            responseModalities: requestBody.generationConfig.responseModalities
+        });
+
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        console.log("📡 HTTP响应状态:", response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ API请求失败，响应内容:", errorText);
+            throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("📥 双人对话TTS API 返回数据:", {
+            hasCandidates: !!data.candidates,
+            candidatesCount: data.candidates ? data.candidates.length : 0,
+            modelVersion: data.modelVersion,
+            responseId: data.responseId,
+            usageMetadata: data.usageMetadata
+        });
+
+        // 检查API返回的数据结构
+        console.log("🔍 验证API返回数据结构...");
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+            console.error("❌ API返回数据格式不正确:", data);
+            throw new Error("API返回数据格式不正确");
+        }
+
+        const candidate = data.candidates[0];
+        const part = candidate.content.parts[0];
+
+        console.log("📊 候选数据详情:", {
+            hasContent: !!candidate.content,
+            partsCount: candidate.content.parts.length,
+            hasInlineData: !!part.inlineData,
+            dataMimeType: part.inlineData ? part.inlineData.mimeType : 'none'
+        });
+
+        const audioData = part.inlineData.data;
+
+        if (!audioData) {
+            console.error("❌ API返回的音频数据为空");
+            throw new Error("API返回的音频数据为空");
+        }
+
+        console.log("🎵 双人对话音频数据获取成功，数据长度:", audioData.length);
+        console.log("📤 准备发送音频数据到内容脚本...");
+
+        // 检查是否启用自动保存
+        const saveSettings = await chrome.storage.sync.get(['autoSaveAudio', 'saveFormat']);
+        const autoSave = saveSettings.autoSaveAudio !== false;
+        const saveFormat = saveSettings.saveFormat || 'wav';
+
+        console.log("💾 自动保存设置:", { autoSave, saveFormat });
+
+        // 将音频数据发送到内容脚本进行播放
+        sendMessageToContentScript(tabId, {
+            action: "playAudio",
+            audioData: audioData,
+            text: textToSpeak,
+            autoSave: autoSave,
+            saveFormat: saveFormat,
+            isDualVoice: true  // 标记为双人对话音频
+        });
+
+    } catch (error) {
+        console.error("💥 双人对话TTS API调用失败:", error);
+        console.error("📋 错误详情:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+
+        // 发送错误信息到内容脚本
+        console.log("📤 发送错误信息到内容脚本");
+        sendMessageToContentScript(tabId, {
+            action: "displayError",
+            error: `双人对话语音生成失败: ${error.message}`
+        });
+    }
+}
+
 // 总结并播放功能
 async function summarizeAndSpeak(tabId, text) {
     console.log("🎯 开始AI总结并播放流程");
@@ -520,7 +729,8 @@ async function summarizeAndSpeak(tabId, text) {
 
         // 调用TTS API将总结转为语音
         console.log("🎤 步骤2: 将总结内容转为语音");
-        await callTTSAPI(tabId, summary);
+        // await callTTSAPI(tabId, summary);
+        await callDualVoiceTTSAPI(tabId, summary);
 
         console.log("✅ AI总结并播放流程完成");
 
