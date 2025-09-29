@@ -6,21 +6,26 @@ chrome.runtime.onInstalled.addListener(() => {
         title: "AI语音播放选中文本",
         contexts: ["selection"] // 只在用户选中文字时显示
     });
+    // 新增：AI总结并播放菜单
+    chrome.contextMenus.create({
+        id: "summarizeAndTTS",
+        title: "AI总结并语音播放",
+        contexts: ["selection"]
+    });
     console.log("✅ 右键菜单创建成功");
 });
 
 // 监听右键菜单点击事件
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+    // 检查是否有选中的文本
+    if (!info.selectionText || info.selectionText.trim().length === 0) {
+        console.log("❌ 没有选中文本");
+        return;
+    }
+
     if (info.menuItemId === "ttsText") {
         console.log("🎯 TTS菜单被点击");
         console.log("📋 Tab信息:", { id: tab.id, url: tab.url, title: tab.title });
-
-        // 检查是否有选中的文本
-        if (!info.selectionText || info.selectionText.trim().length === 0) {
-            console.log("❌ 没有选中文本");
-            return;
-        }
-
         console.log("📝 选中的文本长度:", info.selectionText.length);
         console.log("📝 选中的文本内容:", info.selectionText.substring(0, 100) + (info.selectionText.length > 100 ? "..." : ""));
 
@@ -29,6 +34,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         ensureContentScriptReady(tab.id, () => {
             console.log("✅ 内容脚本准备完成，开始调用TTS API");
             callTTSAPI(tab.id, info.selectionText);
+        });
+    } else if (info.menuItemId === "summarizeAndTTS") {
+        console.log("🎯 AI总结并播放菜单被点击");
+        console.log("📋 Tab信息:", { id: tab.id, url: tab.url, title: tab.title });
+        console.log("📝 选中的文本长度:", info.selectionText.length);
+
+        ensureContentScriptReady(tab.id, () => {
+            console.log("✅ 内容脚本准备完成，开始AI总结流程");
+            summarizeAndSpeak(tab.id, info.selectionText);
         });
     }
 });
@@ -213,6 +227,85 @@ function checkConnectionHealth(tabId) {
     });
 }
 
+// 调用Gemini API 进行相声剧本制作
+async function scriptText(text) {
+    console.log("🤖 开始调用Gemini API进行剧本制作");
+    console.log("📝 输入文本长度:", text.length);
+
+    const apiKey = "TODO"; // 使用相同的API Key
+    const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+
+    // 限制输入文本长度
+    const maxInputLength = 15000;
+    const textToSummarize = text.length > maxInputLength ? text.substring(0, maxInputLength) : text;
+
+    const prompt = `请将以下内容改写为相声的形式，格式为张三和李四的对话：\n\n${textToSummarize}`;
+
+    try {
+        const requestBody = {
+            contents: [
+                {
+                    parts: [
+                        {
+                            text: prompt
+                        }
+                    ]
+                }
+            ],
+            generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 500,
+            }
+        };
+
+        console.log("📦 发送剧本制作请求到Gemini API...");
+
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        console.log("📡 HTTP响应状态:", response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ API请求失败，响应内容:", errorText);
+            throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("📥 Gemini API 返回数据结构:", {
+            hasCandidates: !!data.candidates,
+            candidatesCount: data.candidates ? data.candidates.length : 0
+        });
+
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+            console.error("❌ API返回数据格式不正确:", data);
+            throw new Error("API返回数据格式不正确");
+        }
+
+        const summaryText = data.candidates[0].content.parts[0].text;
+        console.log("✅ 剧本制作完成，剧本长度:", summaryText.length);
+        console.log("📄 剧本内容:", summaryText);
+
+        return summaryText;
+
+    } catch (error) {
+        console.error("💥 剧本制作失败:", error);
+        // 发送错误信息到内容脚本
+        chrome.tabs.sendMessage(tabId, {
+            action: "displayError",
+            error: `剧本制作失败: ${error.message}`
+        });
+    }
+}
+
 // 调用Gemini TTS API的函数
 async function callTTSAPI(tabId, text) {
     console.log("🎤 开始TTS API调用流程");
@@ -234,7 +327,7 @@ async function callTTSAPI(tabId, text) {
     console.log("💾 存储设置:", result);
 
     // const apiKey = result.geminiApiKey || "todo";
-    const apiKey = "todo";
+    const apiKey = "TODO";
     const selectedVoice = result.selectedVoice || "Kore";
 
     // 使用固定的API密钥进行测试
@@ -386,6 +479,60 @@ async function callTTSAPI(tabId, text) {
         });
     }
 }
+
+// 总结并播放功能
+async function summarizeAndSpeak(tabId, text) {
+    console.log("🎯 开始AI总结并播放流程");
+
+    try {
+        // 先进行连接健康检查
+        console.log("🏥 进行连接健康检查...");
+        const isHealthy = await checkConnectionHealth(tabId);
+        if (!isHealthy) {
+            console.log("⚠️ 连接不健康，重新确保内容脚本准备...");
+            await new Promise((resolve) => {
+                ensureContentScriptReady(tabId, resolve);
+            });
+        }
+
+        // 显示"正在总结"状态
+        sendMessageToContentScript(tabId, {
+            action: "showLoading",
+            message: "正在AI总结内容..."
+        });
+
+        // 调用Gemini进行剧本制作
+        console.log("🤖 步骤1: 调用Gemini进行剧本制作");
+        const summary = await scriptText(text);
+
+        // 显示剧本内容（可选）
+        console.log("📢 显示剧本内容给用户");
+        sendMessageToContentScript(tabId, {
+            action: "displaySummary",
+            summary: summary
+        });
+
+        // 更新状态为"正在生成语音"
+        sendMessageToContentScript(tabId, {
+            action: "showLoading",
+            message: "正在生成语音..."
+        });
+
+        // 调用TTS API将总结转为语音
+        console.log("🎤 步骤2: 将总结内容转为语音");
+        await callTTSAPI(tabId, summary);
+
+        console.log("✅ AI总结并播放流程完成");
+
+    } catch (error) {
+        console.error("💥 AI总结并播放失败:", error);
+        sendMessageToContentScript(tabId, {
+            action: "displayError",
+            error: `AI总结失败: ${error.message}`
+        });
+    }
+}
+
 
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
