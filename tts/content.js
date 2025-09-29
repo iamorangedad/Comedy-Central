@@ -466,7 +466,8 @@ function showAudioPlayer(audio, text) {
 
     // 创建文本预览
     const textPreview = document.createElement('div');
-    textPreview.textContent = text.length > 100 ? text.substring(0, 100) + '...' : text;
+    // textPreview.textContent = text.length > 100 ? text.substring(0, 100) + '...' : text;
+    textPreview.textContent = text;
     textPreview.style.cssText = `
         background: #f8f9fa;
         padding: 8px;
@@ -477,6 +478,8 @@ function showAudioPlayer(audio, text) {
         line-height: 1.4;
         max-height: 60px;
         overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     `;
 
     // 创建控制按钮容器
