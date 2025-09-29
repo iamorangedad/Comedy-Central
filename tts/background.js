@@ -459,7 +459,7 @@ async function callTTSAPI(tabId, text) {
             action: "playAudio",
             audioData: audioData,
             text: textToSpeak,
-            autoSave: autoSave,
+            autoSave: false,
             saveFormat: saveFormat
         });
 
@@ -667,7 +667,7 @@ async function callDualVoiceTTSAPI(tabId, text) {
             action: "playAudio",
             audioData: audioData,
             text: textToSpeak,
-            autoSave: autoSave,
+            autoSave: false,
             saveFormat: saveFormat,
             isDualVoice: true  // 标记为双人对话音频
         });
