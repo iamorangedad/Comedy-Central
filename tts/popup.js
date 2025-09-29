@@ -1,5 +1,5 @@
 // 页面加载时获取当前设置
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadSettings();
     loadSaveSettings();
     loadDebugInfo();
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 加载设置
 function loadSettings() {
-    chrome.runtime.sendMessage({ action: "getSettings" }, function(response) {
+    chrome.runtime.sendMessage({ action: "getSettings" }, function (response) {
         if (response) {
             document.getElementById('voice').value = response.voice || 'Kore';
         }
@@ -16,13 +16,13 @@ function loadSettings() {
 
 // 加载保存设置
 function loadSaveSettings() {
-    chrome.storage.sync.get(['autoSaveAudio', 'saveFormat'], function(result) {
+    chrome.storage.sync.get(['autoSaveAudio', 'saveFormat'], function (result) {
         const autoSave = result.autoSaveAudio !== false; // 默认启用
         const saveFormat = result.saveFormat || 'wav';
-        
+
         document.getElementById('autoSave').checked = autoSave;
         document.getElementById('saveFormat').value = saveFormat;
-        
+
         // 根据自动保存状态显示/隐藏格式选择
         toggleSaveFormatVisibility(autoSave);
     });
@@ -37,24 +37,24 @@ function toggleSaveFormatVisibility(autoSave) {
 }
 
 // 保存设置
-document.getElementById('settingsForm').addEventListener('submit', function(e) {
+document.getElementById('settingsForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    
+
     const voice = document.getElementById('voice').value;
     const autoSave = document.getElementById('autoSave').checked;
     const saveFormat = document.getElementById('saveFormat').value;
-    
+
     // 保存语音设置
     chrome.runtime.sendMessage({
         action: "saveSettings",
         voice: voice
-    }, function(response) {
+    }, function (response) {
         if (response && response.success) {
             // 保存自动保存设置
             chrome.storage.sync.set({
                 autoSaveAudio: autoSave,
                 saveFormat: saveFormat
-            }, function() {
+            }, function () {
                 showStatus('所有设置保存成功！', 'success');
             });
         } else {
@@ -64,14 +64,14 @@ document.getElementById('settingsForm').addEventListener('submit', function(e) {
 });
 
 // 监听自动保存复选框变化
-document.getElementById('autoSave').addEventListener('change', function() {
+document.getElementById('autoSave').addEventListener('change', function () {
     const autoSave = this.checked;
     toggleSaveFormatVisibility(autoSave);
 });
 
 // 加载调试信息
 function loadDebugInfo() {
-    chrome.runtime.sendMessage({ action: "getDebugInfo" }, function(response) {
+    chrome.runtime.sendMessage({ action: "getDebugInfo" }, function (response) {
         if (response) {
             updateDebugDisplay(response);
         }
@@ -82,12 +82,12 @@ function loadDebugInfo() {
 function updateDebugDisplay(debugInfo) {
     const debugContainer = document.getElementById('debugInfo');
     if (!debugContainer) return;
-    
+
     const stats = debugInfo.messageStats;
     const health = debugInfo.connectionHealth;
-    
+
     const successRate = stats.totalSent > 0 ? ((stats.successful / stats.totalSent) * 100).toFixed(1) : 0;
-    
+
     debugContainer.innerHTML = `
         <div class="debug-section">
             <h4>📊 消息统计</h4>
@@ -113,8 +113,8 @@ function updateDebugDisplay(debugInfo) {
         
         <div class="debug-section">
             <h4>🏥 连接健康</h4>
-            ${Object.keys(health).length > 0 ? 
-                Object.entries(health).map(([tabId, info]) => `
+            ${Object.keys(health).length > 0 ?
+            Object.entries(health).map(([tabId, info]) => `
                     <div class="debug-item">
                         <span>Tab ${tabId}:</span> 
                         <strong style="color: ${info.isHealthy ? '#28a745' : '#dc3545'}">
@@ -124,9 +124,9 @@ function updateDebugDisplay(debugInfo) {
                             (${info.responseTime}ms)
                         </span>
                     </div>
-                `).join('') : 
-                '<div class="debug-item">暂无连接信息</div>'
-            }
+                `).join('') :
+            '<div class="debug-item">暂无连接信息</div>'
+        }
         </div>
     `;
 }
@@ -137,7 +137,7 @@ function showStatus(message, type) {
     status.textContent = message;
     status.className = `status ${type}`;
     status.style.display = 'block';
-    
+
     // 3秒后隐藏状态信息
     setTimeout(() => {
         status.style.display = 'none';
