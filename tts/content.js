@@ -398,7 +398,8 @@ function playAudioFromBase64(base64Data, text) {
         audio.addEventListener('ended', () => {
             console.log("🏁 音频播放结束，清理资源");
             URL.revokeObjectURL(audioUrl);
-            hideAudioPlayer();
+            // hideAudioPlayer();
+            console.log("ℹ️ 播放器保持显示，用户可手动关闭");
         });
 
         // 添加播放失败的备用处理
@@ -420,7 +421,7 @@ function playAudioFromBase64(base64Data, text) {
     }
 }
 
-// 显示音频播放器界面
+// 显示音频播放器界面 - 修改版（只能通过关闭按钮关闭）
 function showAudioPlayer(audio, text) {
     // 移除已存在的播放器
     const existingPlayer = document.getElementById('ai-tts-player');
@@ -445,6 +446,11 @@ function showAudioPlayer(audio, text) {
         min-width: 300px;
         max-width: 400px;
     `;
+
+    // 阻止拖拽等操作
+    player.onclick = (e) => {
+        e.stopPropagation();
+    };
 
     // 创建标题
     const title = document.createElement('h4');
@@ -484,6 +490,7 @@ function showAudioPlayer(audio, text) {
     // 播放/暂停按钮
     const playPauseBtn = document.createElement('button');
     playPauseBtn.innerHTML = '⏸️';
+    playPauseBtn.title = '播放/暂停';
     playPauseBtn.style.cssText = `
         background: #007bff;
         color: white;
@@ -492,11 +499,13 @@ function showAudioPlayer(audio, text) {
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
+        transition: background 0.3s ease;
     `;
 
     // 停止按钮
     const stopBtn = document.createElement('button');
     stopBtn.innerHTML = '⏹️';
+    stopBtn.title = '停止';
     stopBtn.style.cssText = `
         background: #6c757d;
         color: white;
@@ -505,6 +514,7 @@ function showAudioPlayer(audio, text) {
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
+        transition: background 0.3s ease;
     `;
 
     // 保存按钮
@@ -519,11 +529,13 @@ function showAudioPlayer(audio, text) {
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
+        transition: background 0.3s ease;
     `;
 
     // 关闭按钮
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '✕';
+    closeBtn.title = '关闭播放器';
     closeBtn.style.cssText = `
         background: #dc3545;
         color: white;
@@ -533,6 +545,7 @@ function showAudioPlayer(audio, text) {
         cursor: pointer;
         font-size: 14px;
         margin-left: auto;
+        transition: background 0.3s ease;
     `;
 
     // 进度条
@@ -548,6 +561,7 @@ function showAudioPlayer(audio, text) {
         background: #e9ecef;
         border-radius: 2px;
         overflow: hidden;
+        cursor: pointer;
     `;
 
     const progressFill = document.createElement('div');
@@ -596,6 +610,13 @@ function showAudioPlayer(audio, text) {
         }
     });
 
+    playPauseBtn.addEventListener('mouseover', () => {
+        playPauseBtn.style.background = '#0056b3';
+    });
+    playPauseBtn.addEventListener('mouseout', () => {
+        playPauseBtn.style.background = '#007bff';
+    });
+
     stopBtn.addEventListener('click', () => {
         audio.pause();
         audio.currentTime = 0;
@@ -604,9 +625,15 @@ function showAudioPlayer(audio, text) {
         updateTimeDisplay(0, audio.duration);
     });
 
+    stopBtn.addEventListener('mouseover', () => {
+        stopBtn.style.background = '#5a6268';
+    });
+    stopBtn.addEventListener('mouseout', () => {
+        stopBtn.style.background = '#6c757d';
+    });
+
     saveBtn.addEventListener('click', () => {
         console.log("💾 用户手动保存音频文件");
-        // 获取当前音频的Base64数据
         if (window.currentAudioBase64 && window.currentAudioText) {
             saveAudioFile(window.currentAudioBase64, window.currentAudioText, 'wav');
         } else {
@@ -614,9 +641,34 @@ function showAudioPlayer(audio, text) {
         }
     });
 
+    saveBtn.addEventListener('mouseover', () => {
+        saveBtn.style.background = '#218838';
+    });
+    saveBtn.addEventListener('mouseout', () => {
+        saveBtn.style.background = '#28a745';
+    });
+
+    // 只能通过点击关闭按钮关闭
     closeBtn.addEventListener('click', () => {
+        console.log("🔴 用户点击关闭按钮，关闭播放器");
         audio.pause();
         hideAudioPlayer();
+    });
+
+    closeBtn.addEventListener('mouseover', () => {
+        closeBtn.style.background = '#c82333';
+    });
+    closeBtn.addEventListener('mouseout', () => {
+        closeBtn.style.background = '#dc3545';
+    });
+
+    // 点击进度条跳转
+    progressBar.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        const percentage = clickX / width;
+        audio.currentTime = audio.duration * percentage;
     });
 
     // 更新进度条
@@ -630,6 +682,7 @@ function showAudioPlayer(audio, text) {
 
     // 音频结束
     audio.addEventListener('ended', () => {
+        console.log("✅ 音频播放完毕");
         playPauseBtn.innerHTML = '▶️';
         progressFill.style.width = '100%';
     });
@@ -643,6 +696,20 @@ function showAudioPlayer(audio, text) {
         };
         timeDisplay.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
     }
+
+    // 可选：添加ESC键关闭功能
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            console.log("🔴 用户按下ESC键，关闭播放器");
+            audio.pause();
+            hideAudioPlayer();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // 保存escHandler引用以便清理
+    player.dataset.escHandler = 'attached';
 }
 
 // 隐藏音频播放器
@@ -653,7 +720,7 @@ function hideAudioPlayer() {
     }
 }
 
-// 显示加载状态
+// 显示加载状态 - 修改版（添加关闭按钮）
 function showLoadingModal(message) {
     console.log("⏳ 显示加载状态:", message);
 
@@ -680,6 +747,11 @@ function showLoadingModal(message) {
         min-width: 250px;
     `;
 
+    // 阻止点击事件冒泡
+    loading.onclick = (e) => {
+        e.stopPropagation();
+    };
+
     const content = document.createElement('div');
     content.style.cssText = `
         display: flex;
@@ -699,18 +771,53 @@ function showLoadingModal(message) {
         animation: spin 1s linear infinite;
     `;
 
-    // 添加旋转动画
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+    // 添加旋转动画（只添加一次）
+    if (!document.getElementById('ai-tts-spin-animation')) {
+        const style = document.createElement('style');
+        style.id = 'ai-tts-spin-animation';
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const messageText = document.createElement('span');
+    messageText.textContent = message;
+    messageText.style.flex = '1';
+
+    // 添加关闭按钮（可选功能，允许用户取消加载）
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✕';
+    closeBtn.title = '取消';
+    closeBtn.style.cssText = `
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s ease;
     `;
-    document.head.appendChild(style);
+
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#c82333';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = '#dc3545';
+    };
+
+    closeBtn.onclick = () => {
+        console.log("🔴 用户取消加载");
+        hideLoadingModal();
+    };
 
     content.appendChild(spinner);
-    content.appendChild(document.createTextNode(message));
+    content.appendChild(messageText);
+    content.appendChild(closeBtn);
     loading.appendChild(content);
 
     document.body.appendChild(loading);
@@ -729,12 +836,18 @@ function hideLoadingModal() {
     }
 }
 
-// 显示错误信息
+// 显示错误信息 - 修改版（只能通过关闭按钮关闭）
 function showErrorModal(error) {
     console.log("❌ 显示错误信息:", error);
 
     // 隐藏加载状态
     hideLoadingModal();
+
+    // 移除已存在的错误弹窗
+    const existingModal = document.getElementById('ai-tts-error-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
 
     const modal = document.createElement('div');
     modal.id = 'ai-tts-error-modal';
@@ -776,6 +889,7 @@ function showErrorModal(error) {
         line-height: 1.6;
         color: #555;
         margin-bottom: 20px;
+        white-space: pre-wrap;
     `;
 
     const closeBtn = document.createElement('button');
@@ -788,20 +902,48 @@ function showErrorModal(error) {
         border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
+        transition: background 0.3s ease;
     `;
 
-    closeBtn.onclick = () => modal.remove();
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#c82333';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = '#dc3545';
+    };
+
+    // 只能通过点击关闭按钮关闭
+    closeBtn.onclick = () => {
+        console.log("🔴 用户点击关闭按钮，关闭错误弹窗");
+        modal.remove();
+    };
 
     modalContent.appendChild(title);
     modalContent.appendChild(content);
     modalContent.appendChild(closeBtn);
     modal.appendChild(modalContent);
 
+    // 阻止点击背景关闭弹窗
     modal.onclick = (e) => {
-        if (e.target === modal) {
+        // 只阻止，不关闭
+        e.stopPropagation();
+        console.log("ℹ️ 点击背景无法关闭，请使用关闭按钮");
+    };
+
+    // 阻止点击内容区域时事件冒泡
+    modalContent.onclick = (e) => {
+        e.stopPropagation();
+    };
+
+    // 可选：添加ESC键关闭功能
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            console.log("🔴 用户按下ESC键，关闭错误弹窗");
             modal.remove();
+            document.removeEventListener('keydown', escHandler);
         }
     };
+    document.addEventListener('keydown', escHandler);
 
     document.body.appendChild(modal);
 }
