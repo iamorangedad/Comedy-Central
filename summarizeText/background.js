@@ -11,15 +11,15 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "summarizeText") {
         console.log("右键菜单被点击");
-        
+
         // 检查是否有选中的文本
         if (!info.selectionText || info.selectionText.trim().length === 0) {
             console.log("没有选中文本");
             return;
         }
-        
+
         console.log("选中的文本:", info.selectionText);
-        
+
         // 直接使用选中的文本调用API，避免消息传递的复杂性
         callLLMAPI(tab.id, info.selectionText);
     }
@@ -34,7 +34,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 async function callLLMAPI(tabId, text) {
     // 1. 从 storage 中获取 API 密钥，或者直接在代码中 hardcode (不推荐)
     const apiKey = "todo";
-    
+
     // 检查文本长度
     if (!text || text.trim().length === 0) {
         chrome.tabs.sendMessage(tabId, {
@@ -47,13 +47,13 @@ async function callLLMAPI(tabId, text) {
     // 限制文本长度，避免API调用过长
     const maxLength = 8000;
     const textToSummarize = text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-    
+
     const prompt = `请用中文总结以下文本，要求简洁明了，突出重点：\n\n${textToSummarize}`;
     const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
     try {
         console.log("开始调用API，文本长度:", textToSummarize.length);
-        
+
         const response = await fetch(apiUrl, {
             method: "POST",
             headers: {
@@ -85,14 +85,14 @@ async function callLLMAPI(tabId, text) {
 
         const data = await response.json();
         console.log("API 返回数据:", data);
-        
+
         // 检查API返回的数据结构
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
             throw new Error("API返回数据格式不正确");
         }
-        
+
         const summary = data.candidates[0].content.parts[0].text;
-        
+
         if (!summary || summary.trim().length === 0) {
             throw new Error("API返回的总结内容为空");
         }
@@ -105,7 +105,7 @@ async function callLLMAPI(tabId, text) {
 
     } catch (error) {
         console.error("API调用失败:", error);
-        
+
         // 发送错误信息到内容脚本
         chrome.tabs.sendMessage(tabId, {
             action: "displayError",
