@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="#007bff" stroke="#0056b3" stroke-width="4"/>
+  
+  <!-- 麦克风图标 -->
+  <rect x="54" y="30" width="20" height="40" rx="10" fill="white"/>
+  <rect x="58" y="70" width="12" height="8" fill="white"/>
+  <rect x="60" y="78" width="8" height="12" fill="white"/>
+  
+  <!-- 声波线条 -->
+  <path d="M 80 40 Q 90 50 80 60" stroke="white" stroke-width="3" fill="none"/>
+  <path d="M 85 35 Q 100 50 85 65" stroke="white" stroke-width="3" fill="none"/>
+  <path d="M 90 30 Q 110 50 90 70" stroke="white" stroke-width="3" fill="none"/>
+  
+  <!-- AI文字 -->
+  <text x="64" y="100" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">AI</text>
+</svg>

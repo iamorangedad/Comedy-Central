@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS音频保存功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 TTS音频保存功能测试</h1>
+    
+    <div class="test-section">
+        <h2>📋 测试说明</h2>
+        <p>这个页面用于测试TTS扩展的音频自动保存功能。</p>
+        <ol>
+            <li>确保TTS扩展已安装并启用</li>
+            <li>选中下面的测试文本</li>
+            <li>右键选择"AI语音播放选中文本"</li>
+            <li>观察是否自动保存音频文件</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>📝 测试文本</h2>
+        <p id="testText" style="background: #e9ecef; padding: 15px; border-radius: 5px; cursor: pointer;">
+            这是一个用于测试TTS音频保存功能的示例文本。请选中这段文字，然后右键选择"AI语音播放选中文本"来测试自动保存功能。如果设置正确，音频文件应该会自动下载到您的下载文件夹中。
+        </p>
+        <button class="test-button" onclick="selectTestText()">选中测试文本</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>⚙️ 设置检查</h2>
+        <div id="settingsStatus" class="info">
+            正在检查扩展设置...
+        </div>
+        <button class="test-button" onclick="checkSettings()">检查设置</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔧 功能测试</h2>
+        <button class="test-button" onclick="testAutoSave()">测试自动保存</button>
+        <button class="test-button" onclick="testManualSave()">测试手动保存</button>
+        <div id="testResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 调试信息</h2>
+        <button class="test-button" onclick="showDebugInfo()">显示调试信息</button>
+        <div id="debugInfo"></div>
+    </div>
+
+    <script>
+        // 选中测试文本
+        function selectTestText() {
+            const textElement = document.getElementById('testText');
+            const range = document.createRange();
+            range.selectNodeContents(textElement);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            showStatus('测试文本已选中，请右键选择"AI语音播放选中文本"', 'info');
+        }
+        
+        // 检查设置
+        function checkSettings() {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.sync.get(['autoSaveAudio', 'saveFormat'], function(result) {
+                    const autoSave = result.autoSaveAudio !== false;
+                    const saveFormat = result.saveFormat || 'wav';
+                    
+                    document.getElementById('settingsStatus').innerHTML = `
+                        <strong>当前设置：</strong><br>
+                        自动保存：${autoSave ? '✅ 启用' : '❌ 禁用'}<br>
+                        保存格式：${saveFormat.toUpperCase()}
+                    `;
+                    document.getElementById('settingsStatus').className = autoSave ? 'success' : 'error';
+                });
+            } else {
+                document.getElementById('settingsStatus').innerHTML = '❌ 无法访问扩展设置';
+                document.getElementById('settingsStatus').className = 'error';
+            }
+        }
+        
+        // 测试自动保存
+        function testAutoSave() {
+            showStatus('请选中文本并使用右键菜单测试自动保存功能', 'info');
+        }
+        
+        // 测试手动保存
+        function testManualSave() {
+            showStatus('请先播放音频，然后使用播放器中的保存按钮', 'info');
+        }
+        
+        // 显示调试信息
+        function showDebugInfo() {
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({ action: "getDebugInfo" }, function(response) {
+                    if (response) {
+                        const stats = response.messageStats;
+                        const health = response.connectionHealth;
+                        
+                        document.getElementById('debugInfo').innerHTML = `
+                            <h3>消息统计</h3>
+                            <p>总发送: ${stats.totalSent}</p>
+                            <p>成功: ${stats.successful}</p>
+                            <p>失败: ${stats.failed}</p>
+                            <p>成功率: ${stats.totalSent > 0 ? ((stats.successful / stats.totalSent) * 100).toFixed(1) : 0}%</p>
+                            <p>平均响应时间: ${stats.averageResponseTime.toFixed(0)}ms</p>
+                            <p>重试次数: ${stats.retries}</p>
+                            
+                            <h3>连接健康</h3>
+                            ${Object.keys(health).length > 0 ? 
+                                Object.entries(health).map(([tabId, info]) => 
+                                    `<p>Tab ${tabId}: ${info.isHealthy ? '✅ 健康' : '❌ 不健康'} (${info.responseTime}ms)</p>`
+                                ).join('') : 
+                                '<p>暂无连接信息</p>'
+                            }
+                        `;
+                    } else {
+                        document.getElementById('debugInfo').innerHTML = '❌ 无法获取调试信息';
+                    }
+                });
+            } else {
+                document.getElementById('debugInfo').innerHTML = '❌ 扩展未加载';
+            }
+        }
+        
+        // 显示状态信息
+        function showStatus(message, type) {
+            const resultsDiv = document.getElementById('testResults');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            resultsDiv.appendChild(statusDiv);
+            
+            // 5秒后自动移除
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // 页面加载时自动检查设置
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkSettings, 1000);
+        });
+    </script>
+</body>
+</html>
