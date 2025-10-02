@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Comedy Dialogue</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .script {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #007bff;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .speaker {
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .speaker.jia {
+            color: #007bff;
+        }
+
+        .speaker.yi {
+            color: #28a745;
+        }
+
+        .speaker.active {
+            background: #fff3cd;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .speaker:first-child {
+            margin-top: 0;
+        }
+
+        .audio-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .speed-controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .speed-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .speed-btn.active {
+            background: #007bff;
+        }
+
+        .progress-container {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .status {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #6c757d;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">🎭 A Comedy Chat About California 🎭</h1>
+
+        <div class="script" id="scriptContent">
+            <div class="speaker jia" data-index="0">A:</div>
+            I heard you recently went to America?
+
+            <div class="speaker yi" data-index="1">B:</div>
+            Yes! Just got back from California!
+
+            <div class="speaker jia" data-index="2">A:</div>
+            California? Sounds fancy!
+
+            <div class="speaker yi" data-index="3">B:</div>
+            You bet! It even has a nickname - "The Golden State"!
+
+            <div class="speaker jia" data-index="4">A:</div>
+            The Golden State? Is gold lying everywhere on the ground?
+
+            <div class="speaker yi" data-index="5">B:</div>
+            Ha! Your thinking is still stuck in the Gold Rush era! Now the gold is different - it's economic power!
+
+            <div class="speaker jia" data-index="6">A:</div>
+            How powerful?
+
+            <div class="speaker yi" data-index="7">B:</div>
+            2024 GDP: 4.1 trillion dollars!
+
+            <div class="speaker jia" data-index="8">A:</div>
+            How much?!
+
+            <div class="speaker yi" data-index="9">B:</div>
+            4.1 trillion! More than the entire country of Japan! Number one among all U.S. states!
+
+            <div class="speaker jia" data-index="10">A:</div>
+            Wow! If it became independent, wouldn't it be...
+
+            <div class="speaker yi" data-index="11">B:</div>
+            The world's fourth largest economy! That's how amazing it is!
+
+            <div class="speaker jia" data-index="12">A:</div>
+            What about the population?
+
+            <div class="speaker yi" data-index="13">B:</div>
+            39.18 million! Number one in the U.S.! Equivalent to several of our provinces combined!
+
+            <div class="speaker jia" data-index="14">A:</div>
+            Where do all these people live?
+
+            <div class="speaker yi" data-index="15">B:</div>
+            Two main areas - Los Angeles metro with 18.7 million, San Francisco Bay Area with 8.8 million!
+
+            <div class="speaker jia" data-index="16">A:</div>
+            I know Los Angeles - Hollywood!
+
+            <div class="speaker yi" data-index="17">B:</div>
+            Right! Second largest city in the U.S.! Only after New York!
+
+            <div class="speaker jia" data-index="18">A:</div>
+            What about the San Francisco Bay Area?
+
+            <div class="speaker yi" data-index="19">B:</div>
+            Even more impressive! Silicon Valley is right there! 4 of the world's top 10 companies have headquarters
+            there, and 4 of the world's top 10 billionaires live there!
+
+            <div class="speaker jia" data-index="20">A:</div>
+            So this place is truly the Golden State!
+
+            <div class="speaker yi" data-index="21">B:</div>
+            Absolutely! Even the state capital Sacramento seems low-key in comparison!
+
+            <div class="speaker jia" data-index="22">A:</div>
+            No wonder the postal abbreviation is just two letters - CA, simple and clear!
+
+            <div class="speaker yi" data-index="23">B:</div>
+            There's even a nickname - Cali! Sounds so friendly!
+
+            <div class="speaker jia" data-index="24">A:</div>
+            Looks like I need to experience this "Golden State" charm myself next time!
+
+            <div class="speaker yi" data-index="25">B:</div>
+            Go for it! I guarantee you'll be amazed! From the Pacific coast to inland mountains, from Hollywood to
+            Silicon Valley - truly a magical place!
+        </div>
+
+        <div class="audio-controls">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">🎵 Play Dialogue</button>
+            <button class="play-btn" id="stopBtn" onclick="stopAudio()" disabled>⏹️ Stop</button>
+        </div>
+
+        <div class="speed-controls">
+            <span>Playback Speed:</span>
+            <button class="speed-btn" onclick="setSpeed(0.8)">0.8x</button>
+            <button class="speed-btn active" onclick="setSpeed(1.0)">1.0x</button>
+            <button class="speed-btn" onclick="setSpeed(1.2)">1.2x</button>
+            <button class="speed-btn" onclick="setSpeed(1.5)">1.5x</button>
+        </div>
+
+        <div class="speed-controls">
+            <span>Voice:</span>
+            <select id="voiceSelect" onchange="changeVoice()">
+                <option value="">Loading...</option>
+            </select>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="status" id="status">Ready to play</div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let isPaused = false;
+        let currentSpeed = 1.0;
+        let currentLineIndex = 0;
+        let voices = [];
+        let selectedVoice = null;
+
+        // Dialogue array with different pitches for each speaker
+        const dialogues = [
+            { speaker: 'A', text: 'I heard you recently went to America?', pitch: 1.0 },
+            { speaker: 'B', text: 'Yes! Just got back from California!', pitch: 1.1 },
+            { speaker: 'A', text: 'California? Sounds fancy!', pitch: 1.0 },
+            { speaker: 'B', text: 'You bet! It even has a nickname - The Golden State!', pitch: 1.1 },
+            { speaker: 'A', text: 'The Golden State? Is gold lying everywhere on the ground?', pitch: 1.0 },
+            { speaker: 'B', text: 'Ha! Your thinking is still stuck in the Gold Rush era! Now the gold is different - it\'s economic power!', pitch: 1.1 },
+            { speaker: 'A', text: 'How powerful?', pitch: 1.0 },
+            { speaker: 'B', text: 'Twenty twenty-four GDP: four point one trillion dollars!', pitch: 1.1 },
+            { speaker: 'A', text: 'How much?!', pitch: 1.05 },
+            { speaker: 'B', text: 'Four point one trillion! More than the entire country of Japan! Number one among all U.S. states!', pitch: 1.1 },
+            { speaker: 'A', text: 'Wow! If it became independent, wouldn\'t it be', pitch: 1.0 },
+            { speaker: 'B', text: 'The world\'s fourth largest economy! That\'s how amazing it is!', pitch: 1.1 },
+            { speaker: 'A', text: 'What about the population?', pitch: 1.0 },
+            { speaker: 'B', text: 'Thirty-nine point one eight million! Number one in the U.S.! Equivalent to several of our provinces combined!', pitch: 1.1 },
+            { speaker: 'A', text: 'Where do all these people live?', pitch: 1.0 },
+            { speaker: 'B', text: 'Two main areas - Los Angeles metro with eighteen point seven million, San Francisco Bay Area with eight point eight million!', pitch: 1.1 },
+            { speaker: 'A', text: 'I know Los Angeles - Hollywood!', pitch: 1.0 },
+            { speaker: 'B', text: 'Right! Second largest city in the U.S.! Only after New York!', pitch: 1.1 },
+            { speaker: 'A', text: 'What about the San Francisco Bay Area?', pitch: 1.0 },
+            { speaker: 'B', text: 'Even more impressive! Silicon Valley is right there! Four of the world\'s top ten companies have headquarters there, and four of the world\'s top ten billionaires live there!', pitch: 1.1 },
+            { speaker: 'A', text: 'So this place is truly the Golden State!', pitch: 1.0 },
+            { speaker: 'B', text: 'Absolutely! Even the state capital Sacramento seems low-key in comparison!', pitch: 1.1 },
+            { speaker: 'A', text: 'No wonder the postal abbreviation is just two letters - C A, simple and clear!', pitch: 1.0 },
+            { speaker: 'B', text: 'There\'s even a nickname - Cali! Sounds so friendly!', pitch: 1.1 },
+            { speaker: 'A', text: 'Looks like I need to experience this Golden State charm myself next time!', pitch: 1.0 },
+            { speaker: 'B', text: 'Go for it! I guarantee you\'ll be amazed! From the Pacific coast to inland mountains, from Hollywood to Silicon Valley - truly a magical place!', pitch: 1.1 }
+        ];
+
+        function togglePlay() {
+            if (isPlaying) {
+                if (isPaused) {
+                    resumePlay();
+                } else {
+                    pausePlay();
+                }
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            isPaused = false;
+            currentLineIndex = 0;
+            document.getElementById('playBtn').textContent = '⏸️ Pause';
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('status').textContent = 'Playing...';
+            playNextLine();
+        }
+
+        function pausePlay() {
+            isPaused = true;
+            speechSynthesis.cancel();
+            document.getElementById('playBtn').textContent = '▶️ Resume';
+            document.getElementById('status').textContent = 'Paused';
+        }
+
+        function resumePlay() {
+            isPaused = false;
+            document.getElementById('playBtn').textContent = '⏸️ Pause';
+            document.getElementById('status').textContent = 'Playing...';
+            playNextLine();
+        }
+
+        function playNextLine() {
+            if (!isPlaying || isPaused || currentLineIndex >= dialogues.length) {
+                if (currentLineIndex >= dialogues.length) {
+                    finishPlay();
+                }
+                return;
+            }
+
+            const dialogue = dialogues[currentLineIndex];
+            highlightCurrentLine(currentLineIndex);
+
+            const utterance = new SpeechSynthesisUtterance(dialogue.text);
+            utterance.lang = 'en-US';
+            utterance.rate = currentSpeed;
+            utterance.pitch = dialogue.pitch;
+            utterance.volume = 1.0;
+
+            // Use selected voice
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+
+            utterance.onend = function () {
+                currentLineIndex++;
+                updateProgress();
+
+                // Add brief pause between dialogues
+                setTimeout(() => {
+                    playNextLine();
+                }, 400);
+            };
+
+            utterance.onerror = function (event) {
+                console.error('Speech synthesis error:', event);
+                document.getElementById('status').textContent = 'Playback error, please retry';
+                stopAudio();
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function highlightCurrentLine(index) {
+            // Remove all highlights
+            document.querySelectorAll('.speaker').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Highlight current line
+            const currentSpeaker = document.querySelector(`.speaker[data-index="${index}"]`);
+            if (currentSpeaker) {
+                currentSpeaker.classList.add('active');
+                currentSpeaker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentLineIndex / dialogues.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function finishPlay() {
+            isPlaying = false;
+            isPaused = false;
+            document.getElementById('playBtn').textContent = '🎵 Play Dialogue';
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('status').textContent = 'Playback complete';
+            document.getElementById('progressBar').style.width = '100%';
+
+            // Remove all highlights
+            document.querySelectorAll('.speaker').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            setTimeout(() => {
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('status').textContent = 'Ready to play';
+            }, 2000);
+        }
+
+        function stopAudio() {
+            speechSynthesis.cancel();
+            isPlaying = false;
+            isPaused = false;
+            currentLineIndex = 0;
+            document.getElementById('playBtn').textContent = '🎵 Play Dialogue';
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('status').textContent = 'Ready to play';
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Remove all highlights
+            document.querySelectorAll('.speaker').forEach(el => {
+                el.classList.remove('active');
+            });
+        }
+
+        function setSpeed(speed) {
+            currentSpeed = speed;
+
+            // Update button states
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // If playing, restart to apply new speed
+            if (isPlaying && !isPaused) {
+                const savedIndex = currentLineIndex;
+                stopAudio();
+                setTimeout(() => {
+                    currentLineIndex = savedIndex;
+                    startPlay();
+                }, 100);
+            }
+        }
+
+        // Load available voices
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+
+            // Filter English voices
+            const englishVoices = voices.filter(voice =>
+                voice.lang.includes('en') || voice.lang.includes('EN')
+            );
+
+            if (englishVoices.length === 0) {
+                voiceSelect.innerHTML = '<option value="">No English voices</option>';
+                document.getElementById('status').textContent = 'No English voices installed, will use default';
+            } else {
+                englishVoices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+
+                // Select first English voice by default
+                selectedVoice = englishVoices[0];
+            }
+        }
+
+        function changeVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const index = parseInt(voiceSelect.value);
+            const englishVoices = voices.filter(voice =>
+                voice.lang.includes('en') || voice.lang.includes('EN')
+            );
+            selectedVoice = englishVoices[index];
+        }
+
+        // Check browser support on page load
+        window.addEventListener('load', function () {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById('status').textContent = 'Your browser does not support speech synthesis';
+                document.getElementById('playBtn').disabled = true;
+            } else {
+                loadVoices();
+                // Some browsers need to load voices asynchronously
+                if (speechSynthesis.onvoiceschanged !== undefined) {
+                    speechSynthesis.onvoiceschanged = loadVoices;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
